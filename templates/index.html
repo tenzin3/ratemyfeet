@@ -71,6 +71,12 @@
     .lvl-great { background: var(--great); } .lvl-good { background: var(--good); }
     .lvl-fair { background: var(--fair); }  .lvl-bad { background: var(--bad); }
 
+    .nofeet { max-width: 460px; margin: 0 auto; padding: 24px; text-align: center; }
+    .nofeet img { max-width: 100%; max-height: 260px; border-radius: 12px; opacity: .85; }
+    .nofeet .icon { font-size: 36px; margin-top: 16px; }
+    .nofeet h2 { font-family: Fraunces, Georgia, serif; margin: 8px 0; }
+    .nofeet p { color: var(--muted); line-height: 1.5; margin: 0; }
+
     @media (max-width: 720px) {
       .results { grid-template-columns: 1fr; }
       .score { padding: 20px; }
@@ -91,7 +97,16 @@
 
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
 
-  {% if result %}
+  {% if result and result.not_feet %}
+    <div class="card nofeet">
+      <img src="{{ image_data }}" alt="Your photo">
+      <div class="icon">🦶❓</div>
+      <h2>Hmm, we couldn't find any feet</h2>
+      <p>This photo doesn't look like a feet picture, so we didn't score it. Try a photo where the feet are clearly visible.</p>
+      <a class="btn" href="/">Try another photo</a>
+    </div>
+
+  {% elif result %}
     <div class="results">
       <div class="card photo">
         <img src="{{ image_data }}" alt="Your photo">

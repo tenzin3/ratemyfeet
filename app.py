@@ -7,6 +7,8 @@ Scores (all 0-10):
   - Color        : how vivid but natural the colors are (colorfulness metric)
   - Framing      : penalizes black/white bars and very low resolution
 
+Before scoring, CLIP (openai/clip-vit-base-patch32) checks the photo actually shows feet.
+
 Note: none of these know anything about feet yet. They rate the *photo*.
 """
 import base64
@@ -19,6 +21,7 @@ import torch
 from flask import Flask, render_template, request
 from PIL import Image, ImageOps, UnidentifiedImageError
 from torchvision.transforms.functional import to_tensor
+from transformers import CLIPModel, CLIPProcessor
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB upload limit
@@ -27,7 +30,31 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Loading models on {DEVICE} (first run downloads weights)...")
 AESTHETIC = pyiqa.create_metric("nima", device=DEVICE)
 TECHNICAL = pyiqa.create_metric("nima-spaq", device=DEVICE)
+CLIP = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(DEVICE).eval()
+CLIP_PROCESSOR = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 print("Models ready.")
+
+# Feet check: CLIP compares the photo with these descriptions and picks the closest ones.
+# If the "feet" descriptions together get less than FEET_THRESHOLD of the match, we don't score it.
+FEET_PROMPTS = [
+    "a photo of feet", "a photo of bare feet", "a close-up photo of a foot",
+    "a photo of toes", "a photo of feet with painted toenails",
+]
+OTHER_PROMPTS = [
+    "a photo of a car", "a photo of a person's face", "a photo of hands", "a photo of an animal",
+    "a photo of food", "a photo of a landscape", "a photo of a building", "a screenshot of text",
+    "a photo of shoes", "a photo of a room", "a photo of an object", "a photo of a person's body",
+]
+FEET_THRESHOLD = 0.5
+
+
+@torch.no_grad()
+def feet_probability(img: Image.Image) -> float:
+    """0-1: how strongly CLIP thinks this photo shows feet."""
+    inputs = CLIP_PROCESSOR(text=FEET_PROMPTS + OTHER_PROMPTS, images=img, return_tensors="pt", padding=True).to(DEVICE)
+    probs = CLIP(**inputs).logits_per_image.softmax(dim=-1)[0]
+    return probs[: len(FEET_PROMPTS)].sum().item()
+
 
 # name, plain-language description, weight in the overall score, tip shown when the score is low
 FEATURES = {
@@ -115,6 +142,12 @@ def score_image(img: Image.Image) -> dict:
     original = img
     img, border_fraction = trim_borders(img)
     img.thumbnail((1024, 1024))  # keep inference fast on big phone photos
+
+    feet = feet_probability(img)
+    print(f"feet check -> {feet:.0%} feet")
+    if feet < FEET_THRESHOLD:
+        return {"not_feet": True}
+
     x = to_tensor(img).unsqueeze(0).to(DEVICE)  # shape (1, 3, H, W), values 0-1
 
     raw_aes = AESTHETIC(x).item()
