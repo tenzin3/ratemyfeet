@@ -219,6 +219,12 @@ def index():
     return render_template("index.html", result=result, image_data=image_data, error=error)
 
 
+@app.route("/how-it-works")
+def how_it_works():
+    return render_template("how.html", features=FEATURES, feet_prompts=FEET_PROMPTS,
+                           other_prompts=OTHER_PROMPTS, feet_threshold=FEET_THRESHOLD)
+
+
 @app.errorhandler(413)
 def too_large(_):
     return render_template("index.html", error="That image is too large (max 10 MB)."), 413

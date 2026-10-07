@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How It Works · Rate My Feet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6f1; --card: #ffffff; --ink: #2a211c; --muted: #8a7b70; --line: #e6d6c9; --accent: #e8664a; --accent-soft: #fde6df;
+      --ai: #6a5ae0; --ai-soft: #ece9fd; --rule: #2f9e6e; --rule-soft: #e4f4ec; --bad: #e0573f; --bad-soft: #fde8e4;
+      /* one color per score, used in the cards and the weight bar */
+      --c-look: #e8664a; --c-sharpness: #6a5ae0; --c-lighting: #e8a33a; --c-color: #d65c9a; --c-framing: #2f9e6e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+    .back { display: inline-block; color: var(--ink); font-weight: 600; font-size: 14px; text-decoration: none; padding: 6px 12px;
+            border: 1.5px solid var(--line); border-radius: 99px; background: var(--card); }
+    .back:hover { border-color: var(--accent); color: var(--accent); }
+    header { text-align: center; margin: 20px 0 32px; }
+    h1 { font-family: Fraunces, Georgia, serif; font-weight: 800; font-size: clamp(34px, 6vw, 48px); margin: 0; letter-spacing: -1px; }
+    h1 span { color: var(--accent); }
+    .lead { color: var(--muted); margin: 6px 0 0; }
+
+    /* ---- Flow ---- */
+    .flow { display: flex; flex-direction: column; align-items: center; }
+    .step { display: flex; align-items: center; gap: 16px; width: 100%; max-width: 520px; background: var(--card);
+            border-radius: 18px; padding: 16px 20px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(80,40,20,.06); }
+    .num { flex: none; width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; font-size: 26px; background: var(--accent-soft); }
+    .step h2 { margin: 0; font-size: 17px; }
+    .step p { margin: 2px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-left: 6px;
+           vertical-align: 2px; letter-spacing: .02em; text-transform: uppercase; }
+    .tag.ai { background: var(--ai-soft); color: var(--ai); }
+    .tag.rule { background: var(--rule-soft); color: var(--rule); }
+
+    /* arrow between steps */
+    .arrow { width: 2px; height: 34px; background: var(--line); position: relative; margin: 2px 0 8px; }
+    .arrow::after { content: ""; position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%);
+                    border: 7px solid transparent; border-top-color: var(--line); border-bottom: 0; }
+
+    /* feet check with "no" branch */
+    .decision { position: relative; width: 100%; max-width: 520px; }
+    .decision .step { border: 2px dashed var(--accent); }
+    .branch { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 10px; font-size: 14px; flex-wrap: wrap; }
+    .pill { padding: 5px 12px; border-radius: 99px; font-weight: 600; }
+    .pill.yes { background: var(--rule-soft); color: var(--rule); }
+    .pill.no { background: var(--bad-soft); color: var(--bad); }
+    .branch .muted { color: var(--muted); }
+
+    /* five judges */
+    .judges-box { width: 100%; background: var(--card); border-radius: 22px; padding: 20px;
+                  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(80,40,20,.06); }
+    .judges-box > h2 { text-align: center; margin: 0 0 4px; font-size: 17px; }
+    .judges-box > p { text-align: center; color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+    .judges { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .judge { border: 1.5px solid #f0e6dd; border-top: 5px solid var(--c); border-radius: 14px; padding: 14px 10px; text-align: center; }
+    .judge .icon { font-size: 28px; }
+    .judge h3 { margin: 6px 0 4px; font-size: 15px; }
+    .judge p { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+    .judge .tag { margin-left: 0; }
+
+    /* weight bar */
+    .weights { display: flex; height: 38px; border-radius: 10px; overflow: hidden; margin: 6px 0 8px; }
+    .weights div { display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px; min-width: 0; }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; font-size: 13px; color: var(--muted); }
+    .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--c); margin-right: 6px; }
+
+    /* result mock */
+    .result { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+    .ring { flex: none; width: 58px; height: 58px; border-radius: 50%; background: conic-gradient(#7bb33a 66%, #efe5dc 0); display: grid; place-items: center; }
+    .ring b { width: 44px; height: 44px; border-radius: 50%; background: #fff; display: grid; place-items: center; font: 800 17px Fraunces, serif; }
+    .tip { font-size: 13px; background: #fff7ec; border-radius: 8px; padding: 6px 10px; margin-top: 6px; }
+
+    .legend-key { display: flex; justify-content: center; gap: 16px; margin-top: 28px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+    footer { text-align: center; margin-top: 28px; }
+
+    @media (max-width: 760px) {
+      .judges { grid-template-columns: repeat(2, 1fr); }
+      .judges .judge:last-child { grid-column: span 2; }
+      .weights div { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+{% set icons = {"look": "✨", "sharpness": "🔍", "lighting": "💡", "color": "🎨", "framing": "🖼️"} %}
+{% set how = {
+  "look": ("ai", "AI that learned from 250,000 photos rated by people"),
+  "sharpness": ("ai", "AI that learned from 11,000 rated phone photos"),
+  "lighting": ("rule", "Too dark? Too bright? Flat?"),
+  "color": ("rule", "Dull, vivid or over-filtered?"),
+  "framing": ("rule", "Black bars or a tiny image?")
+} %}
+
+<div class="wrap">
+  <a class="back" href="/">← Back to rating</a>
+  <header>
+    <h1>How it <span>works</span></h1>
+    <p class="lead">From your upload to your score in about a second.</p>
+  </header>
+
+  <div class="flow">
+    <div class="step">
+      <div class="num">📸</div>
+      <div><h2>You upload a photo</h2><p>JPG or PNG up to 10 MB, after agreeing to the terms.</p></div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="num">🧹</div>
+      <div><h2>We tidy it up</h2><p>Turn it the right way up, cut off black bars, shrink it so the AI runs fast.</p></div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="decision">
+      <div class="step">
+        <div class="num">🦶</div>
+        <div><h2>Is it feet? <span class="tag ai">AI</span></h2>
+          <p>CLIP, an AI that understands images and words, compares your photo with {{ feet_prompts|length + other_prompts|length }} descriptions like "bare feet", "a car", "a face".</p></div>
+      </div>
+      <div class="branch">
+        <span class="pill yes">✓ Feet ({{ (feet_threshold * 100)|int }}%+ match) → keep going ↓</span>
+        <span class="pill no">✗ Not feet → stop, no score</span>
+      </div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="judges-box">
+      <h2>Five judges score it, each out of 10</h2>
+      <p>Two are AI models, three are simple measurements of the pixels.</p>
+      <div class="judges">
+        {% for key, f in features.items() %}
+        <div class="judge" style="--c: var(--c-{{ key }})">
+          <div class="icon">{{ icons[key] }}</div>
+          <h3>{{ f[0] }}</h3>
+          <span class="tag {{ how[key][0] }}">{{ "AI" if how[key][0] == "ai" else "Measured" }}</span>
+          <p>{{ how[key][1] }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="judges-box">
+      <h2>⚖️ Combined into one score</h2>
+      <p>Some judges count more than others:</p>
+      <div class="weights" role="img" aria-label="Score weights">
+        {% for key, f in features.items() %}
+        <div style="width: {{ f[2] * 100 }}%; background: var(--c-{{ key }})">{{ (f[2] * 100)|int }}%</div>
+        {% endfor %}
+      </div>
+      <div class="legend">
+        {% for key, f in features.items() %}<span style="--c: var(--c-{{ key }})">{{ f[0] }}</span>{% endfor %}
+      </div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="num">🎯</div>
+      <div style="flex: 1">
+        <h2>You get your result</h2>
+        <div class="result">
+          <div class="ring"><b>6.6</b></div>
+          <p>Overall score, a label from <i>Needs work</i> to <i>Excellent</i>, and a bar for each judge.</p>
+        </div>
+        <div class="tip">💡 Any judge below 6 adds a quick tip on how to improve.</div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+
+    <div class="step">
+      <div class="num">🗑️</div>
+      <div><h2>Your photo is thrown away</h2><p>It only lived in memory while being scored. Nothing is saved, logged or shared.</p></div>
+    </div>
+  </div>
+
+  <div class="legend-key">
+    <span><span class="tag ai">AI</span> trained model</span>
+    <span><span class="tag rule">Measured</span> simple math on the pixels</span>
+  </div>
+  <p class="lead" style="text-align:center; font-size:14px; margin-top:12px">
+    Heads up: the judges rate the <b>photo</b> (light, clarity, color, framing), not the feet themselves, yet.
+  </p>
+
+  <footer><a class="back" href="/">← Back to rating</a></footer>
+</div>
+</body>
+</html>

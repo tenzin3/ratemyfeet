@@ -77,6 +77,12 @@
     .nofeet h2 { font-family: Fraunces, Georgia, serif; margin: 8px 0; }
     .nofeet p { color: var(--muted); line-height: 1.5; margin: 0; }
 
+    /* "How it works?" link, top right */
+    header { position: relative; }
+    .howlink { position: absolute; top: -28px; right: 0; color: var(--ink); font-weight: 600; font-size: 14px;
+               text-decoration: none; padding: 6px 12px; border: 1.5px solid var(--line); border-radius: 99px; background: var(--card); }
+    .howlink:hover { border-color: var(--accent); color: var(--accent); }
+
     /* Footer */
     footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; line-height: 1.7; }
     footer a, .linkish { color: var(--muted); text-decoration: underline; background: none; border: 0; font: inherit; cursor: pointer; padding: 0; }
@@ -103,6 +109,7 @@
       .results { grid-template-columns: 1fr; }
       .score { padding: 20px; }
       .hero { gap: 16px; }
+      .howlink { top: -34px; }
     }
   </style>
 </head>
@@ -113,6 +120,7 @@
 
 <div class="wrap">
   <header>
+    <a class="howlink" href="/how-it-works">How it works?</a>
     <h1>Rate My <span>Feet</span></h1>
     <p class="tagline">Upload a photo. Get an instant score and tips to make it better.</p>
   </header>
