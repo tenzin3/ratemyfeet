@@ -63,7 +63,7 @@
     .row .val { font-weight: 600; white-space: nowrap; }
     .row .val small { color: var(--muted); font-weight: 500; margin-left: 6px; }
     .desc { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
-    .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .bar { margin-top: 8px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
     .bar i { display: block; height: 100%; border-radius: 99px; }
     .tip { margin: 10px 0 0; padding: 10px 12px; background: #fff7ec; border-radius: 10px; font-size: 14px; line-height: 1.4; }
     .note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; }
@@ -116,7 +116,6 @@
               <span class="name">{{ f.name }}</span>
               <span class="val">{{ f.score }}<small>{{ f.label }}</small></span>
             </div>
-            <p class="desc">{{ f.desc }}</p>
             <div class="bar"><i class="{{ lvl(f.score) }}" style="width: {{ f.score * 10 }}%"></i></div>
             {% if f.tip %}<p class="tip">💡 {{ f.tip }}</p>{% endif %}
           </li>
