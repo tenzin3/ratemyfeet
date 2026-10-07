@@ -4,41 +4,161 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rate My Feet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 520px; margin: 40px auto; padding: 0 16px; color: #222; background: #fafafa; }
-    h1 { margin-bottom: 4px; }
-    .sub { color: #666; margin-top: 0; }
-    form { display: flex; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
-    button { padding: 8px 18px; border: 0; border-radius: 6px; background: #222; color: #fff; cursor: pointer; }
-    button:disabled { opacity: .5; }
-    .error { color: #b00020; }
-    img { width: 100%; border-radius: 8px; }
-    .big { font-size: 56px; font-weight: 700; margin: 16px 0 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    td { padding: 8px 0; border-bottom: 1px solid #ddd; }
-    td:last-child { text-align: right; font-weight: 600; }
-    .note { color: #888; font-size: 13px; margin-top: 16px; }
+    :root {
+      --bg: #fbf6f1; --card: #ffffff; --ink: #2a211c; --muted: #8a7b70; --line: #efe5dc;
+      --accent: #e8664a; --accent-soft: #fde6df;
+      --great: #2f9e6e; --good: #7bb33a; --fair: #e8a33a; --bad: #e0573f;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 40px 16px 64px; }
+    header { text-align: center; margin-bottom: 32px; }
+    h1 { font-family: Fraunces, Georgia, serif; font-weight: 800; font-size: clamp(36px, 7vw, 56px); margin: 0; letter-spacing: -1px; }
+    h1 span { color: var(--accent); }
+    .tagline { color: var(--muted); margin: 8px 0 0; font-size: 17px; }
+
+    .card { background: var(--card); border-radius: 20px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 30px rgba(80,40,20,.06); }
+
+    /* Upload */
+    .upload { max-width: 520px; margin: 0 auto; padding: 24px; }
+    .drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            border: 2px dashed #e6d6c9; border-radius: 14px; padding: 40px 16px; text-align: center;
+            cursor: pointer; transition: .15s; min-height: 220px; }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop .icon { font-size: 40px; }
+    .drop strong { font-size: 17px; }
+    .drop small { color: var(--muted); }
+    .drop img { max-width: 100%; max-height: 320px; border-radius: 10px; }
+    input[type=file] { display: none; }
+    .btn { display: block; width: 100%; margin-top: 16px; padding: 14px; border: 0; border-radius: 12px;
+           background: var(--accent); color: #fff; font: 600 16px Inter, sans-serif; cursor: pointer; transition: .15s; text-decoration: none; text-align: center; }
+    .btn:hover { filter: brightness(.95); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+    .error { background: #fde8e4; color: #a3341f; padding: 12px 16px; border-radius: 12px; margin: 0 auto 16px; max-width: 520px; text-align: center; }
+
+    /* Results */
+    .results { display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px; align-items: start; }
+    .photo { padding: 12px; }
+    .photo img { width: 100%; border-radius: 12px; display: block; }
+    .photo .btn { margin-top: 12px; }
+    .score { padding: 28px; }
+    .hero { display: flex; align-items: center; gap: 20px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+    .ring { --p: 0; --c: var(--accent); flex: none; width: 116px; height: 116px; border-radius: 50%;
+            background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--line) 0); display: grid; place-items: center; }
+    .ring div { width: 92px; height: 92px; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
+    .ring b { font: 800 34px/1 Fraunces, serif; }
+    .ring small { display: block; color: var(--muted); font-size: 12px; }
+    .hero .badge { display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 13px; font-weight: 600; color: #fff; }
+    .hero p { margin: 8px 0 0; font-size: 16px; line-height: 1.4; }
+
+    .features { list-style: none; margin: 0; padding: 8px 0 0; }
+    .features li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .features li:last-child { border-bottom: 0; }
+    .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .row .name { font-weight: 600; }
+    .row .val { font-weight: 600; white-space: nowrap; }
+    .row .val small { color: var(--muted); font-weight: 500; margin-left: 6px; }
+    .desc { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
+    .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 99px; }
+    .tip { margin: 10px 0 0; padding: 10px 12px; background: #fff7ec; border-radius: 10px; font-size: 14px; line-height: 1.4; }
+    .note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; }
+
+    .lvl-great { background: var(--great); } .lvl-good { background: var(--good); }
+    .lvl-fair { background: var(--fair); }  .lvl-bad { background: var(--bad); }
+
+    @media (max-width: 720px) {
+      .results { grid-template-columns: 1fr; }
+      .score { padding: 20px; }
+      .hero { gap: 16px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Rate My Feet</h1>
-  <p class="sub">Upload a photo and get an AI score.</p>
+{# maps a 0-10 score to a color class #}
+{% macro lvl(s) %}{% if s >= 7 %}lvl-great{% elif s >= 5.5 %}lvl-good{% elif s >= 4 %}lvl-fair{% else %}lvl-bad{% endif %}{% endmacro %}
+{% macro color(s) %}{% if s >= 7 %}var(--great){% elif s >= 5.5 %}var(--good){% elif s >= 4 %}var(--fair){% else %}var(--bad){% endif %}{% endmacro %}
 
-  <form method="post" enctype="multipart/form-data" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='Scoring...'">
-    <input type="file" name="photo" accept="image/*" required>
-    <button type="submit">Score it</button>
-  </form>
+<div class="wrap">
+  <header>
+    <h1>Rate My <span>Feet</span></h1>
+    <p class="tagline">Upload a photo. Get an instant score and tips to make it better.</p>
+  </header>
 
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
 
-  {% if scores %}
-    <img src="{{ image_data }}" alt="Your upload">
-    <p class="big">{{ scores.overall }} / 10</p>
-    <table>
-      <tr><td>Photo aesthetics (NIMA · AVA)</td><td>{{ scores.aesthetic }}</td></tr>
-      <tr><td>Technical quality (NIMA · SPAQ)</td><td>{{ scores.technical }}</td></tr>
-    </table>
-    <p class="note">These models judge the photo (lighting, composition, sharpness), not the feet themselves. Most photos land between 4 and 7.</p>
+  {% if result %}
+    <div class="results">
+      <div class="card photo">
+        <img src="{{ image_data }}" alt="Your photo">
+        <a class="btn ghost" href="/">Try another photo</a>
+      </div>
+
+      <div class="card score">
+        <div class="hero">
+          <div class="ring" style="--p: {{ result.overall * 10 }}; --c: {{ color(result.overall) }}">
+            <div><span><b>{{ result.overall }}</b><small>out of 10</small></span></div>
+          </div>
+          <div>
+            <span class="badge {{ lvl(result.overall) }}">{{ result.label }}</span>
+            <p>{{ result.headline }}</p>
+          </div>
+        </div>
+
+        <ul class="features">
+          {% for f in result.features %}
+          <li>
+            <div class="row">
+              <span class="name">{{ f.name }}</span>
+              <span class="val">{{ f.score }}<small>{{ f.label }}</small></span>
+            </div>
+            <p class="desc">{{ f.desc }}</p>
+            <div class="bar"><i class="{{ lvl(f.score) }}" style="width: {{ f.score * 10 }}%"></i></div>
+            {% if f.tip %}<p class="tip">💡 {{ f.tip }}</p>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <p class="note">Scores rate the photo itself (look, clarity, light, color, framing). Feet-specific scoring is coming soon.</p>
+
+  {% else %}
+    <form class="card upload" method="post" enctype="multipart/form-data" id="form">
+      <label class="drop" id="drop">
+        <input type="file" name="photo" id="file" accept="image/*" required>
+        <span id="placeholder">
+          <div class="icon">📸</div>
+          <strong>Drop your photo here</strong><br>
+          <small>or click to choose · JPG or PNG, up to 10 MB</small>
+        </span>
+        <img id="preview" alt="" hidden>
+      </label>
+      <button class="btn" id="go" type="submit" disabled>Rate my photo</button>
+    </form>
   {% endif %}
+</div>
+
+<script>
+  const file = document.getElementById("file");
+  if (file) {
+    const drop = document.getElementById("drop"), preview = document.getElementById("preview"),
+          placeholder = document.getElementById("placeholder"), go = document.getElementById("go");
+
+    function show(f) {
+      if (!f || !f.type.startsWith("image/")) return;
+      preview.src = URL.createObjectURL(f);
+      preview.hidden = false; placeholder.hidden = true; go.disabled = false;
+    }
+    file.addEventListener("change", () => show(file.files[0]));
+    ["dragenter", "dragover"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add("over"); }));
+    ["dragleave", "drop"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove("over"); }));
+    drop.addEventListener("drop", ev => { file.files = ev.dataTransfer.files; show(file.files[0]); });
+    document.getElementById("form").addEventListener("submit", () => { go.disabled = true; go.textContent = "Rating your photo…"; });
+  }
+</script>
 </body>
 </html>
