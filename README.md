@@ -21,6 +21,43 @@ Upload a feet photo and get an instant score out of 10, a score for each photo f
 
 ---
 
+## User guide
+
+### 1. Agree to the terms
+The first time you open the site, a popup asks you to confirm you're 18 or older and agree to the rules: only your own feet, no one under 18, no nudity. Tick the box and click **Continue**. Your answer is remembered for 30 days.
+
+<img src="images/Authentication.png" alt="Terms popup: confirm you are 18 or older and agree to the rules" width="600">
+
+### 2. Upload or take a photo
+Drag a photo onto the box, click it to choose a file, or tap **📷 Take a photo**. On phones this opens your camera; on laptops it shows a live webcam preview.
+
+<img src="images/First%20Page.png" alt="Home page with the upload box and the Take a photo button" width="600">
+
+### 3. Check the preview and rate it
+Your photo appears in the box. Click **Rate my photo**. On your first visit the AI downloads once (about 23 MB), then scoring takes a second or two.
+
+<img src="images/Upload%20a%20feet%20pic.png" alt="A feet photo selected and ready to rate" width="600">
+
+### 4. Read your result
+You get an overall score out of 10 with a label and a one-line verdict, plus a colored bar for each of the five features. Any feature below 6 comes with a 💡 tip on how to improve it. Click **Try another photo** to start again.
+
+<img src="images/Get%20Feet%20Rating.png" alt="Result page: overall score 6.1 (Good) with five feature scores and tips" width="700">
+
+### 5. No feet? No score
+Photos without feet are not scored. Here a car photo is rejected with a friendly message.
+
+<p>
+  <img src="images/Upload%20a%20car%20pic.png" alt="A car photo selected for rating" width="380">
+  <img src="images/Good%20Try.png" alt="Result: We couldn't find any feet" width="380">
+</p>
+
+### 6. See how it works
+Click **How it works?** at the top right for a visual walkthrough of every step, from the feet check to the five judges and how they're combined.
+
+<img src="images/How%20it%20works.png" alt="How it works page: a flowchart of the scoring steps" width="600">
+
+---
+
 ## Privacy: what the browser stores
 
 Nothing about you or your photo is sent to a server. Here is everything that is stored, and where:
@@ -76,6 +113,7 @@ ratemyfeet/
 │   ├── embeddings.json      pre-computed text prompt embeddings (generated)
 │   ├── make-embeddings.html developer tool that generates embeddings.json
 │   └── .nojekyll            tells GitHub Pages to serve files as-is
+├── images/                  screenshots used in this README
 ├── app.py                   older server version (Flask + PyTorch), for local experiments
 ├── templates/               HTML for the Flask version
 └── requirements.txt         Python packages for the Flask version
