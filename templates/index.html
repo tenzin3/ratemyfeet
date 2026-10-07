@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rate My Feet</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 520px; margin: 40px auto; padding: 0 16px; color: #222; background: #fafafa; }
+    h1 { margin-bottom: 4px; }
+    .sub { color: #666; margin-top: 0; }
+    form { display: flex; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+    button { padding: 8px 18px; border: 0; border-radius: 6px; background: #222; color: #fff; cursor: pointer; }
+    button:disabled { opacity: .5; }
+    .error { color: #b00020; }
+    img { width: 100%; border-radius: 8px; }
+    .big { font-size: 56px; font-weight: 700; margin: 16px 0 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    td { padding: 8px 0; border-bottom: 1px solid #ddd; }
+    td:last-child { text-align: right; font-weight: 600; }
+    .note { color: #888; font-size: 13px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Rate My Feet</h1>
+  <p class="sub">Upload a photo and get an AI score.</p>
+
+  <form method="post" enctype="multipart/form-data" onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='Scoring...'">
+    <input type="file" name="photo" accept="image/*" required>
+    <button type="submit">Score it</button>
+  </form>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  {% if scores %}
+    <img src="{{ image_data }}" alt="Your upload">
+    <p class="big">{{ scores.overall }} / 10</p>
+    <table>
+      <tr><td>Photo aesthetics (NIMA · AVA)</td><td>{{ scores.aesthetic }}</td></tr>
+      <tr><td>Technical quality (NIMA · SPAQ)</td><td>{{ scores.technical }}</td></tr>
+    </table>
+    <p class="note">These models judge the photo (lighting, composition, sharpness), not the feet themselves. Most photos land between 4 and 7.</p>
+  {% endif %}
+</body>
+</html>
