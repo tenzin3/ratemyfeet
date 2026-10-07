@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rate My Feet</title>
+  <meta name="description" content="Rate your feet photo with AI that runs in your browser. Your photo never leaves your device.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6f1; --card: #ffffff; --ink: #2a211c; --muted: #8a7b70; --line: #efe5dc;
+      --accent: #e8664a; --accent-soft: #fde6df;
+      --great: #2f9e6e; --good: #7bb33a; --fair: #e8a33a; --bad: #e0573f;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 40px 16px 64px; }
+    header { text-align: center; margin-bottom: 32px; }
+    h1 { font-family: Fraunces, Georgia, serif; font-weight: 800; font-size: clamp(36px, 7vw, 56px); margin: 0; letter-spacing: -1px; }
+    h1 span { color: var(--accent); }
+    .tagline { color: var(--muted); margin: 8px 0 0; font-size: 17px; }
+
+    .card { background: var(--card); border-radius: 20px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 30px rgba(80,40,20,.06); }
+
+    /* Upload */
+    .upload { max-width: 520px; margin: 0 auto; padding: 24px; }
+    .drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            border: 2px dashed #e6d6c9; border-radius: 14px; padding: 40px 16px; text-align: center;
+            cursor: pointer; transition: .15s; min-height: 220px; }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+    .drop .icon { font-size: 40px; }
+    .drop strong { font-size: 17px; }
+    .drop small { color: var(--muted); }
+    .drop img { max-width: 100%; max-height: 320px; border-radius: 10px; }
+    input[type=file] { display: none; }
+    .btn { display: block; width: 100%; margin-top: 16px; padding: 14px; border: 0; border-radius: 12px;
+           background: var(--accent); color: #fff; font: 600 16px Inter, sans-serif; cursor: pointer; transition: .15s; text-decoration: none; text-align: center; }
+    .btn:hover { filter: brightness(.95); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+    .error { background: #fde8e4; color: #a3341f; padding: 12px 16px; border-radius: 12px; margin: 0 auto 16px; max-width: 520px; text-align: center; }
+
+    /* Results */
+    .results { display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px; align-items: start; }
+    .photo { padding: 12px; }
+    .photo img { width: 100%; border-radius: 12px; display: block; }
+    .photo .btn { margin-top: 12px; }
+    .score { padding: 28px; }
+    .hero { display: flex; align-items: center; gap: 20px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+    .ring { --p: 0; --c: var(--accent); flex: none; width: 116px; height: 116px; border-radius: 50%;
+            background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--line) 0); display: grid; place-items: center; }
+    .ring div { width: 92px; height: 92px; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
+    .ring b { font: 800 34px/1 Fraunces, serif; }
+    .ring small { display: block; color: var(--muted); font-size: 12px; }
+    .hero .badge { display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 13px; font-weight: 600; color: #fff; }
+    .hero p { margin: 8px 0 0; font-size: 16px; line-height: 1.4; }
+
+    .features { list-style: none; margin: 0; padding: 8px 0 0; }
+    .features li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .features li:last-child { border-bottom: 0; }
+    .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .row .name { font-weight: 600; }
+    .row .val { font-weight: 600; white-space: nowrap; }
+    .row .val small { color: var(--muted); font-weight: 500; margin-left: 6px; }
+    .desc { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
+    .bar { margin-top: 8px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 99px; }
+    .tip { margin: 10px 0 0; padding: 10px 12px; background: #fff7ec; border-radius: 10px; font-size: 14px; line-height: 1.4; }
+    .note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; }
+
+    .lvl-great { background: var(--great); } .lvl-good { background: var(--good); }
+    .lvl-fair { background: var(--fair); }  .lvl-bad { background: var(--bad); }
+
+    .nofeet { max-width: 460px; margin: 0 auto; padding: 24px; text-align: center; }
+    .nofeet img { max-width: 100%; max-height: 260px; border-radius: 12px; opacity: .85; }
+    .nofeet .icon { font-size: 36px; margin-top: 16px; }
+    .nofeet h2 { font-family: Fraunces, Georgia, serif; margin: 8px 0; }
+    .nofeet p { color: var(--muted); line-height: 1.5; margin: 0; }
+
+    /* "How it works?" link, top right */
+    header { position: relative; }
+    .howlink { position: absolute; top: -28px; right: 0; color: var(--ink); font-weight: 600; font-size: 14px;
+               text-decoration: none; padding: 6px 12px; border: 1.5px solid var(--line); border-radius: 99px; background: var(--card); }
+    .howlink:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Footer */
+    footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; line-height: 1.7; }
+    footer a, .linkish { color: var(--muted); text-decoration: underline; background: none; border: 0; font: inherit; cursor: pointer; padding: 0; }
+
+    /* Terms popup */
+    .gate { position: fixed; inset: 0; z-index: 10; background: rgba(42, 33, 28, .55); backdrop-filter: blur(6px);
+            display: grid; place-items: center; padding: 16px; }
+    .gate[hidden] { display: none; }
+    .gate .card { width: 100%; max-width: 480px; max-height: calc(100vh - 32px); overflow-y: auto; padding: 28px; }
+    .gate h2 { font-family: Fraunces, Georgia, serif; margin: 0 0 6px; font-size: 26px; }
+    .gate .lead { color: var(--muted); margin: 0 0 16px; }
+    .gate ul { margin: 0 0 16px; padding-left: 0; list-style: none; }
+    .gate li { padding: 7px 0 7px 28px; position: relative; line-height: 1.45; font-size: 15px; }
+    .gate li::before { content: attr(data-i); position: absolute; left: 0; }
+    .gate .privacy { background: #eef7f1; color: #1f6b48; border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-bottom: 16px; }
+    .gate details { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .gate details summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+    .gate details p { margin: 8px 0 0; line-height: 1.5; }
+    .gate label.check { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; font-weight: 500; cursor: pointer; }
+    .gate label.check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+    .gate .leave { display: block; text-align: center; margin-top: 12px; color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 720px) {
+      .results { grid-template-columns: 1fr; }
+      .score { padding: 20px; }
+      .hero { gap: 16px; }
+      .howlink { top: -34px; }
+    }
+    /* Loading state */
+    .status { max-width: 520px; margin: 12px auto 0; text-align: center; color: var(--muted); font-size: 14px; min-height: 20px; }
+    .progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 8px auto 0; max-width: 320px; }
+    .progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="howlink" href="how.html">How it works?</a>
+    <h1>Rate My <span>Feet</span></h1>
+    <p class="tagline">Upload a photo. Get an instant score and tips to make it better.</p>
+  </header>
+
+  <p class="error" id="error" hidden></p>
+
+  <!-- Upload -->
+  <form class="card upload" id="form">
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="image/*">
+      <span id="placeholder">
+        <div class="icon">📸</div>
+        <strong>Drop your photo here</strong><br>
+        <small>or click to choose · JPG or PNG</small>
+      </span>
+      <img id="preview" alt="" hidden>
+    </label>
+    <button class="btn" id="go" type="submit" disabled>Rate my photo</button>
+    <div id="loading" hidden>
+      <p class="status" id="status">Loading the AI…</p>
+      <div class="progress"><i id="bar"></i></div>
+    </div>
+  </form>
+
+  <!-- Not feet -->
+  <div class="card nofeet" id="nofeet" hidden>
+    <img id="nofeet-img" alt="Your photo">
+    <div class="icon">🦶❓</div>
+    <h2>Hmm, we couldn't find any feet</h2>
+    <p>This photo doesn't look like a feet picture, so we didn't score it. Try a photo where the feet are clearly visible.</p>
+    <button class="btn again" type="button">Try another photo</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results" hidden>
+    <div class="results">
+      <div class="card photo">
+        <img id="result-img" alt="Your photo">
+        <button class="btn ghost again" type="button">Try another photo</button>
+      </div>
+      <div class="card score">
+        <div class="hero">
+          <div class="ring" id="ring"><div><span><b id="overall"></b><small>out of 10</small></span></div></div>
+          <div>
+            <span class="badge" id="badge"></span>
+            <p id="headline"></p>
+          </div>
+        </div>
+        <ul class="features" id="features"></ul>
+      </div>
+    </div>
+    <p class="note">Scores rate the photo itself (look, clarity, light, color, framing). Feet-specific scoring is coming soon.</p>
+  </div>
+
+  <footer>
+    🔒 Your photo never leaves your device. The AI runs right here in your browser.<br>
+    18+ only · <button class="linkish" type="button" id="show-terms">Terms of use</button>
+  </footer>
+</div>
+
+<div class="gate" id="gate" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <h2 id="gate-title">Before you start</h2>
+    <p class="lead">Rate My Feet is for adults. By continuing you agree that:</p>
+    <ul>
+      <li data-i="🔞">You are <b>18 or older</b>.</li>
+      <li data-i="🦶">You'll only use photos of <b>your own feet</b>, never someone else's without their permission.</li>
+      <li data-i="🚫">You won't use photos of <b>anyone under 18</b>.</li>
+      <li data-i="🙈">No nudity or sexual content. Feet only.</li>
+    </ul>
+    <p class="privacy">🔒 <b>Your photo never leaves your device.</b> The AI runs inside your browser, so your photo is never uploaded, saved or shared.</p>
+    <details>
+      <summary>Full terms</summary>
+      <p>Scores are generated automatically by AI models running in your browser, are for entertainment only, and may be inaccurate. They are not a judgment of you as a person and are not professional advice.</p>
+      <p>Photos are processed only on your own device to produce your score. They are never sent to us or to anyone else. The first visit downloads the AI model (about 23 MB) from Hugging Face, and your browser keeps a copy for next time.</p>
+      <p>You are responsible for the photos you use and confirm you have the right to use them. Using this site with illegal content is prohibited.</p>
+      <p>The service is provided "as is", without warranties, and may change or stop at any time. Use of the site means you accept these terms.</p>
+    </details>
+    <label class="check"><input type="checkbox" id="agree-box"> I'm 18 or older and I agree to these terms.</label>
+    <button class="btn" type="button" id="enter" disabled>Continue</button>
+    <a class="leave" href="https://www.google.com">I'm under 18 / leave</a>
+  </div>
+</div>
+
+<script type="module">
+  import { loadModels, scorePhoto } from "./scoring.js";
+
+  const $ = (id) => document.getElementById(id);
+  const lvl = (s) => s >= 7 ? "lvl-great" : s >= 5.5 ? "lvl-good" : s >= 4 ? "lvl-fair" : "lvl-bad";
+  const color = (s) => s >= 7 ? "var(--great)" : s >= 5.5 ? "var(--good)" : s >= 4 ? "var(--fair)" : "var(--bad)";
+
+  // ---------- Terms popup (remembered for 30 days on this browser) ----------
+  const KEY = "rmf_agreed_at", THIRTY_DAYS = 30 * 24 * 3600 * 1000;
+  let agreed = false;
+  try { agreed = Date.now() - Number(localStorage.getItem(KEY) || 0) < THIRTY_DAYS; } catch (e) {}
+  const openGate = () => { $("gate").hidden = false; document.body.style.overflow = "hidden"; };
+  const closeGate = () => { $("gate").hidden = true; document.body.style.overflow = ""; };
+  $("agree-box").addEventListener("change", (e) => { $("enter").disabled = !e.target.checked; });
+  $("enter").addEventListener("click", () => {
+    agreed = true;
+    try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+    closeGate();
+    warmUp();
+  });
+  $("show-terms").addEventListener("click", openGate);
+
+  // ---------- Model loading (starts in the background once the visitor has agreed) ----------
+  let modelsReady = null;
+  function warmUp() {
+    modelsReady ??= loadModels((pct) => {
+      $("bar").style.width = pct + "%";
+      $("status").textContent = pct < 100 ? `Loading the AI… ${pct}% (first visit only)` : "Rating your photo…";
+    }).catch((e) => { modelsReady = null; throw e; });
+    return modelsReady;
+  }
+  if (agreed) warmUp(); else openGate();
+
+  // ---------- Upload ----------
+  const file = $("file"), go = $("go");
+  let chosen = null, previewUrl = null;
+  function choose(f) {
+    if (!f || !f.type.startsWith("image/")) return;
+    chosen = f;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(f);
+    $("preview").src = previewUrl;
+    $("preview").hidden = false; $("placeholder").hidden = true; go.disabled = false;
+    $("error").hidden = true;
+  }
+  file.addEventListener("change", () => choose(file.files[0]));
+  const drop = $("drop");
+  ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (ev) => choose(ev.dataTransfer.files[0]));
+
+  $("form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    if (!agreed) return openGate();
+    if (!chosen) return;
+    go.disabled = true; go.textContent = "Rating your photo…";
+    $("loading").hidden = false;
+    try {
+      await warmUp();
+      $("status").textContent = "Rating your photo…";
+      const result = await scorePhoto(chosen);
+      result.notFeet ? showNoFeet() : showResult(result);
+    } catch (e) {
+      console.error(e);
+      $("error").textContent = "Sorry, something went wrong. Check your connection and try again, or try a different photo (JPG or PNG).";
+      $("error").hidden = false;
+    } finally {
+      go.disabled = false; go.textContent = "Rate my photo"; $("loading").hidden = true;
+    }
+  });
+
+  // ---------- Results ----------
+  function showOnly(id) {
+    for (const s of ["form", "nofeet", "results"]) $(s).hidden = s !== id;
+    window.scrollTo({ top: 0 });
+  }
+  function showNoFeet() {
+    $("nofeet-img").src = previewUrl;
+    showOnly("nofeet");
+  }
+  function showResult(r) {
+    $("result-img").src = previewUrl;
+    $("ring").style.setProperty("--p", r.overall * 10);
+    $("ring").style.setProperty("--c", color(r.overall));
+    $("overall").textContent = r.overall.toFixed(1);
+    $("badge").textContent = r.label;
+    $("badge").className = "badge " + lvl(r.overall);
+    $("headline").textContent = r.headline;
+    $("features").replaceChildren(...r.features.map((f) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div class="row"><span class="name"></span><span class="val"><span class="num"></span><small></small></span></div>
+        <div class="bar"><i class="${lvl(f.score)}" style="width:${f.score * 10}%"></i></div>`;
+      li.querySelector(".name").textContent = f.name;
+      li.querySelector(".num").textContent = f.score.toFixed(1);
+      li.querySelector("small").textContent = f.label;
+      if (f.tip) {
+        const tip = document.createElement("p");
+        tip.className = "tip"; tip.textContent = "💡 " + f.tip;
+        li.append(tip);
+      }
+      return li;
+    }));
+    showOnly("results");
+  }
+  document.querySelectorAll(".again").forEach((b) => b.addEventListener("click", () => {
+    chosen = null; file.value = "";
+    $("preview").hidden = true; $("placeholder").hidden = false; go.disabled = true;
+    showOnly("form");
+  }));
+</script>
+</body>
+</html>

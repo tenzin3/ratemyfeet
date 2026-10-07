@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Make Embeddings · Rate My Feet</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; line-height: 1.5; color: #2a211c; background: #fbf6f1; }
+    button { padding: 12px 20px; border: 0; border-radius: 10px; background: #e8664a; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: .5; }
+    pre { background: #fff; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 13px; }
+    code { background: #f6efe8; padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Make <code>embeddings.json</code></h1>
+  <p><b>Developer tool, run once.</b> The site compares each photo with text descriptions like "a photo of feet". This page turns those descriptions into numbers (embeddings) and saves them as <code>embeddings.json</code>, so visitors don't have to download the 43 MB text model.</p>
+  <p>Run it again whenever you change the prompts in <code>scoring.js</code>.</p>
+  <ol>
+    <li>Click the button and wait (downloads the text model once).</li>
+    <li>Save the downloaded <code>embeddings.json</code> into the <code>docs/</code> folder.</li>
+    <li>Commit and push.</li>
+  </ol>
+  <button id="go">Create embeddings.json</button>
+  <pre id="log">Ready.</pre>
+
+  <script type="module">
+    import { computeTextEmbeds, ALL_PROMPTS, MODEL_ID } from "./scoring.js";
+    const log = (m) => { document.getElementById("log").textContent += "\n" + m; };
+    document.getElementById("go").addEventListener("click", async (e) => {
+      e.target.disabled = true;
+      try {
+        log(`Loading ${MODEL_ID} text model…`);
+        let last = -1;
+        const embeds = await computeTextEmbeds((p) => {
+          if (p.status === "progress" && p.total) {
+            const pct = Math.round((100 * p.loaded) / p.total);
+            if (pct % 10 === 0 && pct !== last) { last = pct; log(`  ${p.file}: ${pct}%`); }
+          }
+        });
+        const rounded = embeds.map((v) => v.map((x) => Math.round(x * 1e6) / 1e6));
+        const json = JSON.stringify({ model: MODEL_ID, created: new Date().toISOString(), prompts: ALL_PROMPTS, embeds: rounded });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+        a.download = "embeddings.json";
+        a.click();
+        log(`Done: ${embeds.length} prompts × ${embeds[0].length} numbers. embeddings.json downloaded. Move it into docs/.`);
+      } catch (err) {
+        console.error(err);
+        log("Error: " + err.message);
+        e.target.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
