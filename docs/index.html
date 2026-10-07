@@ -116,6 +116,15 @@
     .status { max-width: 520px; margin: 12px auto 0; text-align: center; color: var(--muted); font-size: 14px; min-height: 20px; }
     .progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 8px auto 0; max-width: 320px; }
     .progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+    /* Take a photo */
+    .or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+    .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .btn.camera { margin-top: 14px; }
+    .cam { width: 100%; max-width: 640px; padding: 16px; }
+    .cam video { width: 100%; max-height: 65vh; border-radius: 12px; background: #000; display: block; object-fit: contain; }
+    .cam .actions { display: flex; gap: 10px; }
+    .cam .actions .btn { margin-top: 12px; }
+    .cam .muted { color: var(--muted); font-size: 13px; text-align: center; margin: 10px 0 0; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -124,7 +133,7 @@
   <header>
     <a class="howlink" href="how.html">How it works?</a>
     <h1>Rate My <span>Feet</span></h1>
-    <p class="tagline">Upload a photo. Get an instant score and tips to make it better.</p>
+    <p class="tagline">Upload or take a photo. Get an instant score and tips to make it better.</p>
   </header>
 
   <p class="error" id="error" hidden></p>
@@ -140,6 +149,9 @@
       </span>
       <img id="preview" alt="" hidden>
     </label>
+    <div class="or">or</div>
+    <button class="btn ghost camera" id="take" type="button">📷 Take a photo</button>
+    <input type="file" id="camera-input" accept="image/*" capture="environment">
     <button class="btn" id="go" type="submit" disabled>Rate my photo</button>
     <div id="loading" hidden>
       <p class="status" id="status">Loading the AI…</p>
@@ -181,6 +193,17 @@
     🔒 Your photo never leaves your device. The AI runs right here in your browser.<br>
     18+ only · <button class="linkish" type="button" id="show-terms">Terms of use</button>
   </footer>
+</div>
+
+<div class="gate" id="camera" hidden>
+  <div class="card cam" role="dialog" aria-modal="true" aria-label="Take a photo">
+    <video id="video" playsinline autoplay muted></video>
+    <div class="actions">
+      <button class="btn ghost" type="button" id="cam-cancel">Cancel</button>
+      <button class="btn" type="button" id="cam-snap">📸 Capture</button>
+    </div>
+    <p class="muted">🔒 The camera stays on your device. Nothing is recorded or uploaded.</p>
+  </div>
 </div>
 
 <div class="gate" id="gate" hidden>
@@ -253,6 +276,46 @@
     $("error").hidden = true;
   }
   file.addEventListener("change", () => choose(file.files[0]));
+
+  // ---------- Take a photo ----------
+  // Phones/tablets: open the phone's own camera app (best quality, autofocus, flash).
+  // Laptops/desktops: show a live webcam preview with a Capture button.
+  const cameraInput = $("camera-input");
+  const isTouchDevice = matchMedia("(pointer: coarse)").matches;
+  let stream = null;
+  cameraInput.addEventListener("change", () => choose(cameraInput.files[0]));
+
+  function stopCamera() {
+    stream?.getTracks().forEach((t) => t.stop());
+    stream = null;
+    $("video").srcObject = null;
+    $("camera").hidden = true; document.body.style.overflow = "";
+  }
+  $("take").addEventListener("click", async () => {
+    if (!agreed) return openGate();
+    if (isTouchDevice || !navigator.mediaDevices?.getUserMedia) return cameraInput.click();
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false,
+      });
+    } catch (e) {
+      console.warn(e);
+      $("error").textContent = "Couldn't open the camera. Allow camera access in your browser, or choose a photo instead.";
+      $("error").hidden = false;
+      return;
+    }
+    $("video").srcObject = stream;
+    $("camera").hidden = false; document.body.style.overflow = "hidden";
+  });
+  $("cam-cancel").addEventListener("click", stopCamera);
+  $("cam-snap").addEventListener("click", () => {
+    const v = $("video");
+    if (!v.videoWidth) return; // camera not ready yet
+    const c = document.createElement("canvas");
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext("2d").drawImage(v, 0, 0);
+    c.toBlob((blob) => { choose(new File([blob], "camera.jpg", { type: "image/jpeg" })); stopCamera(); }, "image/jpeg", 0.92);
+  });
   const drop = $("drop");
   ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
   ["dragleave", "drop"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove("over"); }));
@@ -313,7 +376,7 @@
     showOnly("results");
   }
   document.querySelectorAll(".again").forEach((b) => b.addEventListener("click", () => {
-    chosen = null; file.value = "";
+    chosen = null; file.value = ""; cameraInput.value = "";
     $("preview").hidden = true; $("placeholder").hidden = false; go.disabled = true;
     showOnly("form");
   }));
