@@ -188,13 +188,25 @@ def headline(s: float) -> str:
     return "This one needs some work. The tips below will help a lot."
 
 
+# Optional: set CONTACT_EMAIL (e.g. `CONTACT_EMAIL=you@example.com python app.py`) to show a report address in the footer.
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "")
+
+
+@app.context_processor
+def inject_contact():
+    return {"contact_email": CONTACT_EMAIL}
+
+
+# Privacy: uploads are only held in memory for this request. Nothing is written to disk or logged.
 @app.route("/", methods=["GET", "POST"])
 def index():
     result, image_data, error = None, None, None
 
     if request.method == "POST":
         file = request.files.get("photo")
-        if not file or file.filename == "":
+        if request.form.get("agreed") != "yes":
+            error = "Please confirm you're 18+ and accept the terms before uploading."
+        elif not file or file.filename == "":
             error = "Please choose a photo."
         else:
             raw = file.read()
