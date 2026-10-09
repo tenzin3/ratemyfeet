@@ -1,5 +1,7 @@
 # 🦶 Rate My Feet
 
+> Disclaimer: this project idea was basically seen on social media, and I made it mostly for fun. I personally do not have any kind of fetish or anything of that nature — this is not a secret foot obsession, just a silly little experiment with AI and a bit of internet chaos. Also, no photo is being stored anywhere; this is just a browser-only fun app. Please enjoy it with the same energy I made it: a joke, a gimmick, and absolutely no weirdness.
+
 **Live site: https://tenzin3.github.io/ratemyfeet/**
 
 Upload a feet photo and get an instant score out of 10, a score for each photo feature, and tips to improve it. The AI runs **entirely in your browser**: your photo is never uploaded anywhere.
